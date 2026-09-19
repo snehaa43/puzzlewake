@@ -48,19 +48,27 @@ class StorageService {
     return [
       Alarm(
         id: 'default-alarm-1',
-        time: TimeOfDay(hour: 7, minute: 0),
+        time: const TimeOfDay(hour: 8, minute: 0),
         enabled: true,
-        repeatDays: const [1, 2, 3, 4, 5, 6, 7], // Every day
+        repeatDays: const [1, 2, 3, 4, 5], // Mon-Fri
         sound: 'Classic Alarm',
-        label: 'Good Morning',
+        label: 'Morning Rise',
       ),
       Alarm(
         id: 'default-alarm-2',
-        time: TimeOfDay(hour: 8, minute: 30),
-        enabled: false,
-        repeatDays: const [], // Once
+        time: const TimeOfDay(hour: 18, minute: 0),
+        enabled: true,
+        repeatDays: const [1, 2, 3, 4, 5], // Every weekday
         sound: 'Gentle Wake',
-        label: 'Weekend Rise',
+        label: 'Evening Alert',
+      ),
+      Alarm(
+        id: 'default-alarm-3',
+        time: const TimeOfDay(hour: 10, minute: 30),
+        enabled: true,
+        repeatDays: const [6, 7], // Weekends
+        sound: 'Morning Bell',
+        label: 'Weekend Rest',
       ),
     ];
   }

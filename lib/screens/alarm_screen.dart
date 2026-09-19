@@ -54,7 +54,7 @@ class _AlarmScreenState extends State<AlarmScreen>
       duration: const Duration(milliseconds: 1000),
     )..repeat(reverse: true);
 
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.2).animate(
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.18).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
@@ -110,76 +110,76 @@ class _AlarmScreenState extends State<AlarmScreen>
 
   @override
   Widget build(BuildContext context) {
-    final hourStr = _currentTime.hour == 0
-        ? '12'
-        : (_currentTime.hour > 12
-            ? (_currentTime.hour - 12).toString().padLeft(2, '0')
-            : _currentTime.hour.toString().padLeft(2, '0'));
+    final hourStr = _currentTime.hour.toString().padLeft(2, '0');
     final minStr = _currentTime.minute.toString().padLeft(2, '0');
-    final period = _currentTime.hour >= 12 ? 'PM' : 'AM';
 
     return PopScope(
       canPop: false, // Prevents backing out of alarm screen without solving puzzle!
       child: Scaffold(
-        backgroundColor: const Color(0xFF0D131F),
-        body: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Morning dawn background aura
-            Positioned(
-              top: -100,
-              child: Container(
-                width: 400,
-                height: 400,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      AppTheme.primaryAmber.withValues(alpha: 0.35),
-                      AppTheme.coralSunrise.withValues(alpha: 0.15),
-                      Colors.transparent,
-                    ],
+        backgroundColor: Colors.transparent,
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: AppTheme.nightBackgroundGradient,
+          ),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Dreamy ambient background aura
+              Positioned(
+                top: -80,
+                child: Container(
+                  width: 360,
+                  height: 360,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        const Color(0xFFC084FC).withValues(alpha: 0.25),
+                        const Color(0xFFFFD54F).withValues(alpha: 0.1),
+                        Colors.transparent,
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
 
-            SafeArea(
-              child: _isSuccessCelebration
-                  ? _buildSuccessView()
-                  : _buildActiveAlarmView(hourStr, minStr, period),
-            ),
-
-            // Celebration Confetti Cannon
-            Align(
-              alignment: Alignment.topCenter,
-              child: ConfettiWidget(
-                confettiController: _confettiController,
-                blastDirectionality: BlastDirectionality.explosive,
-                shouldLoop: false,
-                colors: const [
-                  AppTheme.primaryAmber,
-                  AppTheme.primarySun,
-                  AppTheme.coralSunrise,
-                  AppTheme.successGreen,
-                  Colors.white,
-                  AppTheme.morningSky,
-                ],
-                numberOfParticles: 35,
-                gravity: 0.15,
+              SafeArea(
+                child: _isSuccessCelebration
+                    ? _buildSuccessView()
+                    : _buildActiveAlarmView(hourStr, minStr),
               ),
-            ),
-          ],
+
+              // Celebration Confetti Cannon
+              Align(
+                alignment: Alignment.topCenter,
+                child: ConfettiWidget(
+                  confettiController: _confettiController,
+                  blastDirectionality: BlastDirectionality.explosive,
+                  shouldLoop: false,
+                  colors: const [
+                    Color(0xFFD8B4FE),
+                    Color(0xFFFFD54F),
+                    Color(0xFFFF8A65),
+                    Colors.white,
+                    Color(0xFFBE8DF1),
+                  ],
+                  numberOfParticles: 35,
+                  gravity: 0.15,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   /// Active ringing view with Live Clock, Wake banner, and 3x3 Jigsaw puzzle
-  Widget _buildActiveAlarmView(String hourStr, String minStr, String period) {
+  Widget _buildActiveAlarmView(String hourStr, String minStr) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: constraints.maxHeight - 32),
@@ -192,62 +192,50 @@ class _AlarmScreenState extends State<AlarmScreen>
                     ScaleTransition(
                       scale: _pulseAnimation,
                       child: Container(
-                        padding: const EdgeInsets.all(14),
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: AppTheme.primaryAmber.withValues(alpha: 0.2),
+                          color: const Color(0xFF352054),
+                          border: Border.all(
+                            color: const Color(0xFFD8B4FE).withValues(alpha: 0.6),
+                            width: 2,
+                          ),
                           boxShadow: [
                             BoxShadow(
-                              color: AppTheme.primaryAmber.withValues(alpha: 0.4),
-                              blurRadius: 24,
+                              color: const Color(0xFFC084FC).withValues(alpha: 0.35),
+                              blurRadius: 28,
                               spreadRadius: 4,
                             ),
                           ],
                         ),
                         child: const Icon(
-                          Icons.alarm_on,
-                          color: AppTheme.primaryAmber,
-                          size: 38,
+                          Icons.alarm_on_rounded,
+                          color: Color(0xFFD8B4FE),
+                          size: 40,
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 14),
 
-                    // Live digital clock display
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        Text(
-                          '$hourStr:$minStr',
-                          style: const TextStyle(
-                            fontSize: 48,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -1.5,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          period,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w800,
-                            color: AppTheme.primaryAmber,
-                          ),
-                        ),
-                      ],
+                    // Live digital clock display (24h style)
+                    Text(
+                      '$hourStr:$minStr',
+                      style: const TextStyle(
+                        fontSize: 54,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -1.5,
+                        color: Colors.white,
+                      ),
                     ),
 
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
                     const Text(
-                      'GOOD MORNING 🌅',
+                      'WAKE UP & SOLVE 🌙',
                       style: TextStyle(
-                        fontSize: 18,
+                        fontSize: 16,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 1.5,
-                        color: AppTheme.primarySun,
+                        color: Color(0xFFD8B4FE),
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -256,7 +244,7 @@ class _AlarmScreenState extends State<AlarmScreen>
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
-                        color: Colors.white70,
+                        color: Color(0xFFA092B3),
                       ),
                     ),
                   ],
@@ -282,19 +270,19 @@ class _AlarmScreenState extends State<AlarmScreen>
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.08),
+                        color: const Color(0xFF241938),
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white12),
+                        border: Border.all(color: const Color(0xFF382952)),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
                             _puzzleState.selectedSlot != null
-                                ? Icons.touch_app
+                                ? Icons.touch_app_rounded
                                 : Icons.extension_outlined,
                             size: 16,
-                            color: AppTheme.primaryAmber,
+                            color: const Color(0xFFD8B4FE),
                           ),
                           const SizedBox(width: 8),
                           Text(
@@ -315,7 +303,7 @@ class _AlarmScreenState extends State<AlarmScreen>
                       'Solve the puzzle to turn off the alarm.',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.white54,
+                        color: Color(0xFFA092B3),
                       ),
                     ),
                   ],
@@ -341,19 +329,19 @@ class _AlarmScreenState extends State<AlarmScreen>
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppTheme.successGreen.withValues(alpha: 0.2),
-                border: Border.all(color: AppTheme.successGreen, width: 3),
+                color: const Color(0xFF2E1C48),
+                border: Border.all(color: const Color(0xFFD8B4FE), width: 3),
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.successGreen.withValues(alpha: 0.4),
+                    color: const Color(0xFFC084FC).withValues(alpha: 0.4),
                     blurRadius: 32,
                     spreadRadius: 6,
                   ),
                 ],
               ),
               child: const Icon(
-                Icons.check_circle_outline,
-                color: AppTheme.successGreen,
+                Icons.check_circle_outline_rounded,
+                color: Color(0xFFD8B4FE),
                 size: 72,
               ),
             ),
@@ -379,7 +367,7 @@ class _AlarmScreenState extends State<AlarmScreen>
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
-                color: AppTheme.primarySun,
+                color: Color(0xFFFFD54F),
               ),
             ),
 
@@ -390,7 +378,7 @@ class _AlarmScreenState extends State<AlarmScreen>
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 15,
-                color: Colors.white70,
+                color: Color(0xFFA092B3),
               ),
             ),
 
@@ -398,7 +386,7 @@ class _AlarmScreenState extends State<AlarmScreen>
 
             // Solved puzzle preview
             ClipRRect(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(20),
               child: SizedBox(
                 width: 140,
                 height: 140,
@@ -417,12 +405,12 @@ class _AlarmScreenState extends State<AlarmScreen>
               height: 56,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.successGreen,
-                  foregroundColor: Colors.white,
+                  backgroundColor: const Color(0xFFD8B4FE),
+                  foregroundColor: const Color(0xFF1E1033),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18),
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  elevation: 4,
+                  elevation: 0,
                 ),
                 onPressed: _onDismissSuccess,
                 child: const Text(

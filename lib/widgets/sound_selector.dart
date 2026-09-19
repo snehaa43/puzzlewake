@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/sound_service.dart';
 import '../theme/app_theme.dart';
 
-/// Interactive Sound Selector list with play/preview buttons.
+/// Interactive Sound Selector list with play/preview buttons styled for adaptive theme.
 class SoundSelector extends StatelessWidget {
   final String selectedSound;
   final ValueChanged<String> onSoundSelected;
@@ -26,7 +26,7 @@ class SoundSelector extends StatelessWidget {
       case 'Morning Bell':
         return Icons.notifications_active_outlined;
       case 'Gentle Wake':
-        return Icons.nature_people_outlined;
+        return Icons.bedtime_outlined;
       case 'Wake Up':
         return Icons.wb_sunny_outlined;
       default:
@@ -36,8 +36,7 @@ class SoundSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final sounds = SoundService.availableSounds;
 
     return Column(
@@ -50,7 +49,7 @@ class SoundSelector extends StatelessWidget {
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(18),
               onTap: () {
                 onSoundSelected(soundName);
               },
@@ -58,23 +57,33 @@ class SoundSelector extends StatelessWidget {
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? AppTheme.primaryAmber.withValues(alpha: isDark ? 0.2 : 0.1)
-                      : (isDark ? AppTheme.darkSurfaceVariant.withValues(alpha: 0.5) : AppTheme.lightSurfaceVariant.withValues(alpha: 0.6)),
-                  borderRadius: BorderRadius.circular(16),
+                  color: isDark
+                      ? (isSelected ? const Color(0xFF382356) : const Color(0xFF241938))
+                      : (isSelected ? const Color(0xFFF3E8FF) : Colors.white),
+                  borderRadius: BorderRadius.circular(18),
                   border: Border.all(
-                    color: isSelected
-                        ? AppTheme.primaryAmber
-                        : (isDark ? AppTheme.darkCardBorder : AppTheme.lightCardBorder),
-                    width: isSelected ? 2.0 : 1.0,
+                    color: isDark
+                        ? (isSelected ? const Color(0xFFBE8DF1) : const Color(0xFF382952))
+                        : (isSelected ? const Color(0xFF9333EA) : const Color(0xFFE2D6F3)),
+                    width: isSelected ? 1.5 : 1.0,
                   ),
+                  boxShadow: [
+                    if (!isDark)
+                      BoxShadow(
+                        color: const Color(0xFF7C3AED).withValues(alpha: 0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      ),
+                  ],
                 ),
                 child: Row(
                   children: [
                     // Radio / Selected indicator
                     Icon(
                       isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
-                      color: isSelected ? AppTheme.primaryAmber : (isDark ? Colors.white38 : Colors.black38),
+                      color: isDark
+                          ? (isSelected ? const Color(0xFFBE8DF1) : Colors.white38)
+                          : (isSelected ? const Color(0xFF9333EA) : const Color(0xFFB5A9C5)),
                       size: 20,
                     ),
                     const SizedBox(width: 12),
@@ -82,7 +91,9 @@ class SoundSelector extends StatelessWidget {
                     // Sound Icon
                     Icon(
                       _getSoundIcon(soundName),
-                      color: isSelected ? AppTheme.primaryAmber : (isDark ? Colors.white70 : AppTheme.lightTextPrimary),
+                      color: isDark
+                          ? (isSelected ? const Color(0xFFD8B4FE) : const Color(0xFFA092B3))
+                          : (isSelected ? const Color(0xFF7E22CE) : const Color(0xFF6B5880)),
                       size: 22,
                     ),
                     const SizedBox(width: 12),
@@ -94,9 +105,9 @@ class SoundSelector extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                          color: isSelected
-                              ? (isDark ? Colors.white : AppTheme.lightTextPrimary)
-                              : (isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextPrimary),
+                          color: isDark
+                              ? (isSelected ? Colors.white : const Color(0xFFA092B3))
+                              : (isSelected ? const Color(0xFF1E1033) : const Color(0xFF6B5880)),
                         ),
                       ),
                     ),
@@ -106,9 +117,11 @@ class SoundSelector extends StatelessWidget {
                       icon: AnimatedSwitcher(
                         duration: const Duration(milliseconds: 200),
                         child: Icon(
-                          isPreviewing ? Icons.stop_circle : Icons.play_circle_fill,
+                          isPreviewing ? Icons.stop_circle_rounded : Icons.play_circle_fill_rounded,
                           key: ValueKey(isPreviewing),
-                          color: isPreviewing ? AppTheme.alertRed : AppTheme.primaryAmber,
+                          color: isPreviewing
+                              ? AppTheme.alertRed
+                              : (isDark ? const Color(0xFFD8B4FE) : const Color(0xFF9333EA)),
                           size: 32,
                         ),
                       ),

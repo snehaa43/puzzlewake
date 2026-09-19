@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'services/alarm_service.dart';
+import 'services/notification_service.dart';
 import 'services/puzzle_service.dart';
 import 'services/sound_service.dart';
 import 'services/storage_service.dart';
@@ -21,12 +22,22 @@ void main() async {
   // Initialize persistent storage
   final storageService = await StorageService.init();
 
+  // Initialize notification service & permissions for background alarms
+  final notificationService = NotificationService();
+  try {
+    await notificationService.init();
+    await notificationService.requestPermissions();
+  } catch (e) {
+    debugPrint('Notification service initialization note: $e');
+  }
+
   // Initialize core services
   final soundService = SoundService();
   final puzzleService = PuzzleService();
   final alarmService = AlarmService(
     storage: storageService,
     soundService: soundService,
+    notificationService: notificationService,
   );
 
   runApp(PuzzleWakeApp(
@@ -34,6 +45,7 @@ void main() async {
     soundService: soundService,
     puzzleService: puzzleService,
     alarmService: alarmService,
+    notificationService: notificationService,
   ));
 }
 
@@ -42,6 +54,7 @@ class PuzzleWakeApp extends StatefulWidget {
   final SoundService soundService;
   final PuzzleService puzzleService;
   final AlarmService alarmService;
+  final NotificationService notificationService;
 
   const PuzzleWakeApp({
     super.key,
@@ -49,6 +62,7 @@ class PuzzleWakeApp extends StatefulWidget {
     required this.soundService,
     required this.puzzleService,
     required this.alarmService,
+    required this.notificationService,
   });
 
   @override
@@ -83,8 +97,10 @@ class _PuzzleWakeAppState extends State<PuzzleWakeApp> {
         soundService: widget.soundService,
         storageService: widget.storageService,
         puzzleService: widget.puzzleService,
+        notificationService: widget.notificationService,
         onThemeChanged: _onThemeChanged,
       ),
     );
   }
 }
+

@@ -4,11 +4,7 @@ import '../services/storage_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/sound_selector.dart';
 
-/// Dedicated Settings Page limited strictly to the 4 requested settings:
-/// 1. Alarm Volume
-/// 2. Vibration
-/// 3. Default Alarm Sound
-/// 4. Dark Mode
+/// Dedicated Settings Page styled with adaptive light/dark celestial palette.
 class SettingsScreen extends StatefulWidget {
   final StorageService storageService;
   final SoundService soundService;
@@ -78,187 +74,238 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final textPrimary = _isDarkMode ? Colors.white : const Color(0xFF1E1033);
+    final textSecondary = _isDarkMode ? const Color(0xFFA092B3) : const Color(0xFF6B5880);
+    final cardBg = _isDarkMode ? const Color(0xFF241938) : Colors.white;
+    final cardBorder = _isDarkMode ? const Color(0xFF382952) : const Color(0xFFE2D6F3);
+    final iconColor = _isDarkMode ? const Color(0xFFD8B4FE) : const Color(0xFF9333EA);
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: const Text('Settings'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text(
+          'Settings',
+          style: TextStyle(fontWeight: FontWeight.w700, color: textPrimary),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back_rounded, color: textPrimary),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-          children: [
-            // --- 1. ALARM VOLUME ---
-            _buildSectionHeader('Alarm Volume', Icons.volume_up_outlined),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: isDark ? AppTheme.darkSurface : AppTheme.lightSurface,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isDark ? AppTheme.darkCardBorder : AppTheme.lightCardBorder,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: AppTheme.getBackgroundGradient(_isDarkMode),
+        ),
+        child: SafeArea(
+          child: ListView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            children: [
+              // --- 1. ALARM VOLUME ---
+              _buildSectionHeader('Alarm Volume', Icons.volume_up_rounded, iconColor, textPrimary),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: cardBorder),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _isDarkMode
+                          ? Colors.black.withValues(alpha: 0.15)
+                          : const Color(0xFF7C3AED).withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        _volume == 0
-                            ? Icons.volume_off
-                            : (_volume < 0.5 ? Icons.volume_down : Icons.volume_up),
-                        color: AppTheme.primaryAmber,
-                        size: 26,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Slider(
-                          value: _volume,
-                          min: 0.0,
-                          max: 1.0,
-                          divisions: 20,
-                          onChanged: _updateVolume,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${(_volume * 100).round()}%',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : AppTheme.lightTextPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 28),
-
-            // --- 2. VIBRATION ---
-            _buildSectionHeader('Vibration', Icons.vibration),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              decoration: BoxDecoration(
-                color: isDark ? AppTheme.darkSurface : AppTheme.lightSurface,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isDark ? AppTheme.darkCardBorder : AppTheme.lightCardBorder,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                child: Column(
+                  children: [
+                    Row(
                       children: [
-                        Text(
-                          'Vibration',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+                        Icon(
+                          _volume == 0
+                              ? Icons.volume_off_rounded
+                              : (_volume < 0.5 ? Icons.volume_down_rounded : Icons.volume_up_rounded),
+                          color: iconColor,
+                          size: 26,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Slider(
+                            value: _volume,
+                            min: 0.0,
+                            max: 1.0,
+                            divisions: 20,
+                            activeColor: _isDarkMode ? const Color(0xFFBE8DF1) : const Color(0xFF9333EA),
+                            inactiveColor: _isDarkMode ? const Color(0xFF3B285A) : const Color(0xFFE4D7F5),
+                            onChanged: _updateVolume,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(width: 8),
                         Text(
-                          'Vibrate while alarm is ringing',
+                          '${(_volume * 100).round()}%',
                           style: TextStyle(
-                            fontSize: 13,
-                            color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: textPrimary,
                           ),
                         ),
                       ],
                     ),
-                  ),
-                  Switch(
-                    value: _vibrationEnabled,
-                    onChanged: _updateVibration,
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 28),
-
-            // --- 3. DEFAULT ALARM SOUND ---
-            _buildSectionHeader('Default Alarm Sound', Icons.music_note_outlined),
-            const SizedBox(height: 12),
-            SoundSelector(
-              selectedSound: _defaultSound,
-              onSoundSelected: _updateDefaultSound,
-              soundService: widget.soundService,
-              volume: _volume,
-            ),
-
-            const SizedBox(height: 28),
-
-            // --- 4. DARK MODE ---
-            _buildSectionHeader('Dark Mode', Icons.dark_mode_outlined),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              decoration: BoxDecoration(
-                color: isDark ? AppTheme.darkSurface : AppTheme.lightSurface,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isDark ? AppTheme.darkCardBorder : AppTheme.lightCardBorder,
+                  ],
                 ),
               ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Dark Mode',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          _isDarkMode ? 'Dark morning theme active' : 'Light sunrise theme active',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: isDark ? AppTheme.darkTextSecondary : AppTheme.lightTextSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Switch(
-                    value: _isDarkMode,
-                    onChanged: _updateDarkMode,
-                  ),
-                ],
-              ),
-            ),
 
-            const SizedBox(height: 32),
-          ],
+              const SizedBox(height: 28),
+
+              // --- 2. VIBRATION ---
+              _buildSectionHeader('Vibration', Icons.vibration_rounded, iconColor, textPrimary),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: cardBorder),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _isDarkMode
+                          ? Colors.black.withValues(alpha: 0.15)
+                          : const Color(0xFF7C3AED).withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Vibration',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Vibrate while alarm is ringing',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Switch(
+                      value: _vibrationEnabled,
+                      activeTrackColor: _isDarkMode ? const Color(0xFFBE8DF1) : const Color(0xFF9333EA),
+                      inactiveTrackColor: _isDarkMode ? const Color(0xFF382752) : const Color(0xFFE4D7F5),
+                      activeThumbColor: Colors.white,
+                      onChanged: _updateVibration,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 28),
+
+              // --- 3. DEFAULT ALARM SOUND ---
+              _buildSectionHeader('Default Alarm Sound', Icons.music_note_rounded, iconColor, textPrimary),
+              const SizedBox(height: 12),
+              SoundSelector(
+                selectedSound: _defaultSound,
+                onSoundSelected: _updateDefaultSound,
+                soundService: widget.soundService,
+                volume: _volume,
+              ),
+
+              const SizedBox(height: 28),
+
+              // --- 4. DARK / LIGHT THEME TOGGLE ---
+              _buildSectionHeader(
+                _isDarkMode ? 'Night Mode' : 'Light Mode',
+                _isDarkMode ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+                iconColor,
+                textPrimary,
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                decoration: BoxDecoration(
+                  color: cardBg,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: cardBorder),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _isDarkMode
+                          ? Colors.black.withValues(alpha: 0.15)
+                          : const Color(0xFF7C3AED).withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _isDarkMode ? 'Celestial Night Theme' : 'Celestial Dawn Theme',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: textPrimary,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _isDarkMode
+                                ? 'Dark purple sky with glowing crescent moon'
+                                : 'Fresh lavender dawn with bright elements',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Switch(
+                      value: _isDarkMode,
+                      activeTrackColor: const Color(0xFFBE8DF1),
+                      inactiveTrackColor: const Color(0xFFE4D7F5),
+                      activeThumbColor: Colors.white,
+                      inactiveThumbColor: const Color(0xFF9333EA),
+                      onChanged: _updateDarkMode,
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 32),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildSectionHeader(String title, IconData icon) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget _buildSectionHeader(String title, IconData icon, Color iconColor, Color textColor) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: AppTheme.primaryAmber),
+        Icon(icon, size: 20, color: iconColor),
         const SizedBox(width: 8),
         Text(
           title,
@@ -266,7 +313,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             fontSize: 16,
             fontWeight: FontWeight.w800,
             letterSpacing: -0.2,
-            color: isDark ? Colors.white : AppTheme.lightTextPrimary,
+            color: textColor,
           ),
         ),
       ],
