@@ -216,32 +216,22 @@ class AlarmCard extends StatelessWidget {
                                       : const Color(0xFFB5A9C5)),
                             ),
                             const SizedBox(width: 5),
-                            Text(
-                              repeatText,
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: alarm.enabled
-                                    ? (isDark ? const Color(0xFFA092B3) : const Color(0xFF6B5880))
-                                    : (isDark
-                                        ? Colors.white.withValues(alpha: 0.25)
-                                        : const Color(0xFFB5A9C5)),
-                              ),
-                            ),
-                            if (alarm.sound.isNotEmpty) ...[
-                              const SizedBox(width: 10),
-                              Text(
-                                '•  ${alarm.sound}',
+                            Flexible(
+                              child: Text(
+                                alarm.sound.isNotEmpty ? '$repeatText  •  ${alarm.sound}' : repeatText,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
                                   color: alarm.enabled
-                                      ? (isDark ? const Color(0xFF8B7A9F) : const Color(0xFF8D7C9F))
+                                      ? (isDark ? const Color(0xFFA092B3) : const Color(0xFF6B5880))
                                       : (isDark
-                                          ? Colors.white.withValues(alpha: 0.2)
-                                          : const Color(0xFFC0B4CE)),
+                                          ? Colors.white.withValues(alpha: 0.25)
+                                          : const Color(0xFFB5A9C5)),
                                 ),
                               ),
-                            ],
+                            ),
                           ],
                         ),
                       ],
