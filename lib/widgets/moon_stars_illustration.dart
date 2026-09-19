@@ -1,14 +1,17 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
-/// A custom-painted luminous crescent moon and glowing golden stars widget
-/// that faithfully reproduces the dreamy bedtime illustration from the design.
+/// A custom-painted luminous illustration that dynamically renders:
+/// - A glowing golden Crescent Moon & Stars in Night Mode.
+/// - A radiant luminous Sun with golden rays & ambient corona in Day Mode.
 class MoonStarsIllustration extends StatefulWidget {
   final double size;
+  final bool isDark;
 
   const MoonStarsIllustration({
     super.key,
     this.size = 220,
+    this.isDark = true,
   });
 
   @override
@@ -36,23 +39,39 @@ class _MoonStarsIllustrationState extends State<MoonStarsIllustration>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return SizedBox(
-          width: widget.size,
-          height: widget.size,
-          child: CustomPaint(
-            painter: _MoonStarsPainter(
-              animationValue: _controller.value,
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 400),
+      transitionBuilder: (child, animation) {
+        return FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.85, end: 1.0).animate(
+              CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
             ),
+            child: child,
           ),
         );
       },
+      child: AnimatedBuilder(
+        key: ValueKey(widget.isDark),
+        animation: _controller,
+        builder: (context, child) {
+          return SizedBox(
+            width: widget.size,
+            height: widget.size,
+            child: CustomPaint(
+              painter: widget.isDark
+                  ? _MoonStarsPainter(animationValue: _controller.value)
+                  : _SunPainter(animationValue: _controller.value),
+            ),
+          );
+        },
+      ),
     );
   }
 }
 
+/// Painter for Night Theme: Crescent Moon & Golden Stars
 class _MoonStarsPainter extends CustomPainter {
   final double animationValue;
 
@@ -63,7 +82,7 @@ class _MoonStarsPainter extends CustomPainter {
     final center = Offset(size.width * 0.44, size.height * 0.48);
     final moonRadius = size.width * 0.42;
 
-    // 1. Dreamy Atmospheric Ambient Glow behind the moon
+    // 1. Atmospheric Ambient Glow
     final glowPaint = Paint()
       ..shader = RadialGradient(
         colors: [
@@ -78,11 +97,9 @@ class _MoonStarsPainter extends CustomPainter {
     canvas.drawCircle(center, moonRadius * 1.35, glowPaint);
 
     // 2. Crescent Moon Path
-    // Outer circle
     final outerPath = Path()
       ..addOval(Rect.fromCircle(center: center, radius: moonRadius));
 
-    // Inner cutout circle (offset to top-right to create the left crescent)
     final cutoutCenter = Offset(
       center.dx + moonRadius * 0.48,
       center.dy - moonRadius * 0.28,
@@ -91,21 +108,20 @@ class _MoonStarsPainter extends CustomPainter {
     final innerPath = Path()
       ..addOval(Rect.fromCircle(center: cutoutCenter, radius: cutoutRadius));
 
-    // Combined Crescent
     final crescentPath = Path.combine(PathOperation.difference, outerPath, innerPath);
 
-    // Moon Gradient Fill (Smooth peach to soft yellow cream)
-    final moonGradient = LinearGradient(
+    // Moon Gradient
+    final moonGradient = const LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: const [
+      colors: [
         Color(0xFFFFF7C2), // Pale golden highlight at top left
         Color(0xFFFFDE8A), // Warm yellow
         Color(0xFFFFAC70), // Peach/salmon body
         Color(0xFFFF8A65), // Soft coral at bottom tip
         Color(0xFFFF7043),
       ],
-      stops: const [0.0, 0.25, 0.65, 0.88, 1.0],
+      stops: [0.0, 0.25, 0.65, 0.88, 1.0],
     );
 
     final moonPaint = Paint()
@@ -114,7 +130,6 @@ class _MoonStarsPainter extends CustomPainter {
       )
       ..isAntiAlias = true;
 
-    // Drop shadow under the crescent
     final shadowPaint = Paint()
       ..color = const Color(0xFFFF7043).withValues(alpha: 0.3)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 16);
@@ -122,7 +137,7 @@ class _MoonStarsPainter extends CustomPainter {
     canvas.drawPath(crescentPath, shadowPaint);
     canvas.drawPath(crescentPath, moonPaint);
 
-    // Inner soft crescent highlight edge
+    // Inner highlight stroke
     final highlightPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2.0
@@ -137,8 +152,7 @@ class _MoonStarsPainter extends CustomPainter {
 
     canvas.drawPath(crescentPath, highlightPaint);
 
-    // 3. Golden Stars nestled within the moon crescent
-    // Star 1: Large Main Star (Center-right of the crescent)
+    // 3. Golden Stars
     final star1Center = Offset(size.width * 0.62, size.height * 0.54);
     final star1Pulse = 1.0 + 0.06 * math.sin(animationValue * 2 * math.pi);
     _drawStar(
@@ -150,7 +164,6 @@ class _MoonStarsPainter extends CustomPainter {
       glowAlpha: 0.45 + 0.15 * animationValue,
     );
 
-    // Star 2: Medium Top-Left Star
     final star2Center = Offset(size.width * 0.51, size.height * 0.28);
     final star2Pulse = 1.0 + 0.08 * math.cos(animationValue * 2 * math.pi);
     _drawStar(
@@ -162,7 +175,6 @@ class _MoonStarsPainter extends CustomPainter {
       glowAlpha: 0.4 + 0.2 * (1 - animationValue),
     );
 
-    // Star 3: Small Top-Right Star
     final star3Center = Offset(size.width * 0.73, size.height * 0.35);
     final star3Pulse = 1.0 + 0.07 * math.sin((animationValue + 0.5) * 2 * math.pi);
     _drawStar(
@@ -183,13 +195,11 @@ class _MoonStarsPainter extends CustomPainter {
     required double rotation,
     required double glowAlpha,
   }) {
-    // 1. Star ambient glow
     final starGlowPaint = Paint()
       ..color = const Color(0xFFFFD54F).withValues(alpha: glowAlpha.clamp(0.0, 1.0))
       ..maskFilter = MaskFilter.blur(BlurStyle.normal, outerRadius * 0.75);
     canvas.drawCircle(center, outerRadius * 0.8, starGlowPaint);
 
-    // 2. Star 5-point path with smooth rounded tips
     final starPath = _createStarPath(
       center: center,
       points: 5,
@@ -198,14 +208,13 @@ class _MoonStarsPainter extends CustomPainter {
       rotation: rotation,
     );
 
-    // Star Gradient (Bright golden yellow to warm amber)
-    final starGradient = LinearGradient(
+    final starGradient = const LinearGradient(
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
-      colors: const [
-        Color(0xFFFFF59D), // Light cream yellow
-        Color(0xFFFFD54F), // Golden star yellow
-        Color(0xFFFFB300), // Amber
+      colors: [
+        Color(0xFFFFF59D),
+        Color(0xFFFFD54F),
+        Color(0xFFFFB300),
       ],
     );
 
@@ -217,7 +226,6 @@ class _MoonStarsPainter extends CustomPainter {
 
     canvas.drawPath(starPath, starPaint);
 
-    // Soft highlight on top
     final highlightPaint = Paint()
       ..shader = LinearGradient(
         begin: Alignment.topCenter,
@@ -260,6 +268,192 @@ class _MoonStarsPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _MoonStarsPainter oldDelegate) {
+    return oldDelegate.animationValue != animationValue;
+  }
+}
+
+/// Painter for Day Theme: Radiant Golden Sun with Sunbeams & Corona
+class _SunPainter extends CustomPainter {
+  final double animationValue;
+
+  _SunPainter({required this.animationValue});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width * 0.5, size.height * 0.5);
+    final sunRadius = size.width * 0.26;
+
+    // 1. Sun Corona Outer Glow
+    final glowRadius = size.width * 0.46;
+    final glowPaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          const Color(0xFFFFD54F).withValues(alpha: 0.35 + 0.1 * animationValue),
+          const Color(0xFFFF9800).withValues(alpha: 0.18 + 0.06 * animationValue),
+          const Color(0xFFFF7043).withValues(alpha: 0.05),
+          Colors.transparent,
+        ],
+        stops: const [0.0, 0.45, 0.75, 1.0],
+      ).createShader(Rect.fromCircle(center: center, radius: glowRadius))
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 20);
+
+    canvas.drawCircle(center, glowRadius, glowPaint);
+
+    // 2. Animated Radiant Sunbeams / Sun Rays (12 rays)
+    final numRays = 12;
+    final baseRayAngle = (animationValue * 0.08) * math.pi; // subtle slow rotation
+
+    for (int i = 0; i < numRays; i++) {
+      final angle = (i * 2 * math.pi / numRays) + baseRayAngle;
+      final isMajorRay = i % 2 == 0;
+
+      // Pulsing ray length
+      final lengthMultiplier = isMajorRay
+          ? (1.0 + 0.08 * math.sin((animationValue + i * 0.2) * 2 * math.pi))
+          : (0.85 + 0.06 * math.cos((animationValue + i * 0.2) * 2 * math.pi));
+
+      final rayStartDist = sunRadius + 6;
+      final rayEndDist = (sunRadius + (isMajorRay ? 24.0 : 15.0)) * lengthMultiplier;
+
+      final p1 = Offset(
+        center.dx + rayStartDist * math.cos(angle - 0.09),
+        center.dy + rayStartDist * math.sin(angle - 0.09),
+      );
+      final p2 = Offset(
+        center.dx + rayEndDist * math.cos(angle),
+        center.dy + rayEndDist * math.sin(angle),
+      );
+      final p3 = Offset(
+        center.dx + rayStartDist * math.cos(angle + 0.09),
+        center.dy + rayStartDist * math.sin(angle + 0.09),
+      );
+
+      final rayPath = Path()
+        ..moveTo(p1.dx, p1.dy)
+        ..quadraticBezierTo(
+          center.dx + (rayStartDist + (rayEndDist - rayStartDist) * 0.6) * math.cos(angle),
+          center.dy + (rayStartDist + (rayEndDist - rayStartDist) * 0.6) * math.sin(angle),
+          p2.dx,
+          p2.dy,
+        )
+        ..lineTo(p3.dx, p3.dy)
+        ..close();
+
+      final rayGradient = LinearGradient(
+        begin: Alignment.center,
+        end: Alignment.bottomRight,
+        colors: [
+          const Color(0xFFFFE082),
+          isMajorRay ? const Color(0xFFFFB300) : const Color(0xFFFFA726),
+          const Color(0xFFFF7043).withValues(alpha: 0.6),
+        ],
+      );
+
+      final rayPaint = Paint()
+        ..shader = rayGradient.createShader(Rect.fromCircle(center: center, radius: rayEndDist))
+        ..isAntiAlias = true;
+
+      // Ray drop glow
+      final rayGlow = Paint()
+        ..color = const Color(0xFFFFB300).withValues(alpha: 0.3)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+
+      canvas.drawPath(rayPath, rayGlow);
+      canvas.drawPath(rayPath, rayPaint);
+    }
+
+    // 3. Sun Body Sphere with Smooth Warm Radiant Gradient
+    final sunGradient = const LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [
+        Color(0xFFFFFDE7), // Luminous pale yellow-white highlight
+        Color(0xFFFFF176), // Bright sunshine yellow
+        Color(0xFFFFD54F), // Golden yellow
+        Color(0xFFFFB300), // Deep amber
+        Color(0xFFFF8A65), // Coral glow at bottom-right
+        Color(0xFFFF7043),
+      ],
+      stops: [0.0, 0.2, 0.45, 0.72, 0.9, 1.0],
+    );
+
+    final sunPaint = Paint()
+      ..shader = sunGradient.createShader(
+        Rect.fromCircle(center: center, radius: sunRadius),
+      )
+      ..isAntiAlias = true;
+
+    // Soft drop shadow under the sun
+    final sunShadow = Paint()
+      ..color = const Color(0xFFFF8A65).withValues(alpha: 0.35)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 16);
+
+    canvas.drawCircle(center, sunRadius, sunShadow);
+    canvas.drawCircle(center, sunRadius, sunPaint);
+
+    // 4. Edge Highlight Ring
+    final ringPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.5
+      ..shader = LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Colors.white.withValues(alpha: 0.85),
+          Colors.white.withValues(alpha: 0.1),
+        ],
+      ).createShader(Rect.fromCircle(center: center, radius: sunRadius))
+      ..isAntiAlias = true;
+
+    canvas.drawCircle(center, sunRadius, ringPaint);
+
+    // 5. Floating Morning Sparkles
+    _drawSparkle(
+      canvas: canvas,
+      center: Offset(size.width * 0.78, size.height * 0.3),
+      size: 14 * (1.0 + 0.15 * math.sin(animationValue * 2 * math.pi)),
+    );
+    _drawSparkle(
+      canvas: canvas,
+      center: Offset(size.width * 0.22, size.height * 0.68),
+      size: 10 * (1.0 + 0.18 * math.cos(animationValue * 2 * math.pi)),
+    );
+    _drawSparkle(
+      canvas: canvas,
+      center: Offset(size.width * 0.76, size.height * 0.72),
+      size: 8 * (1.0 + 0.2 * math.sin((animationValue + 0.5) * 2 * math.pi)),
+    );
+  }
+
+  void _drawSparkle({
+    required Canvas canvas,
+    required Offset center,
+    required double size,
+  }) {
+    final paint = Paint()
+      ..shader = const RadialGradient(
+        colors: [
+          Color(0xFFFFFFFF),
+          Color(0xFFFFD54F),
+          Color(0x00FFD54F),
+        ],
+        stops: [0.0, 0.45, 1.0],
+      ).createShader(Rect.fromCircle(center: center, radius: size * 1.2))
+      ..isAntiAlias = true;
+
+    final path = Path()
+      ..moveTo(center.dx, center.dy - size)
+      ..quadraticBezierTo(center.dx, center.dy, center.dx + size, center.dy)
+      ..quadraticBezierTo(center.dx, center.dy, center.dx, center.dy + size)
+      ..quadraticBezierTo(center.dx, center.dy, center.dx - size, center.dy)
+      ..quadraticBezierTo(center.dx, center.dy, center.dx, center.dy - size)
+      ..close();
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _SunPainter oldDelegate) {
     return oldDelegate.animationValue != animationValue;
   }
 }

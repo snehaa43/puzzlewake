@@ -252,10 +252,13 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
 
-                  // --- 2. Crescent Moon & Stars Illustration ---
-                  const SliverToBoxAdapter(
+                  // --- 2. Celestial Illustration (Moon in Night Mode, Sun in Day Mode) ---
+                  SliverToBoxAdapter(
                     child: Center(
-                      child: MoonStarsIllustration(size: 190),
+                      child: MoonStarsIllustration(
+                        size: 190,
+                        isDark: _isDarkMode,
+                      ),
                     ),
                   ),
 
